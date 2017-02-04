@@ -401,7 +401,10 @@ function Invoke-PowerShellUserCode
     $TimeoutMilliseconds,
 
     [String]
-    $WorkingDirectory
+    $WorkingDirectory,
+
+    [Hashtable]
+    $ExecEnvironmentVariables = @{}
   )
 
   if ($global:runspace -eq $null){
@@ -439,10 +442,14 @@ function Invoke-PowerShellUserCode
       [Void]$ps.Runspace.SessionStateProxy.Path.SetLocation($WorkingDirectory)
     }
 
+    if ($ExecEnvironmentVariables -ne $null) {}
+
     if(!$global:environmentVariables){
       $ps.Commands.Clear()
       $global:environmentVariables = $ps.AddCommand('Get-ProcessEnvironmentVariables').Invoke()
     }
+
+    Write-Warning "$($global:environmentVariables)"
 
     if($PSVersionTable.PSVersion -le [Version]'2.0'){
       if(!$global:psVariables){

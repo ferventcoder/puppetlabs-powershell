@@ -73,8 +73,10 @@ Puppet::Type.type(:exec).provide :powershell, :parent => Puppet::Provider::Exec 
         self.fail "Working directory '#{working_dir}' does not exist" unless File.directory?(working_dir)
       end
       timeout_ms = resource[:timeout].nil? ? nil : resource[:timeout] * 1000
+      environment_variables = resource[:environment].nil? ? [] : resource[:environment]
+      Puppet.warning "Environment variables set to - #{resource[:environment]}"
 
-      result = ps_manager.execute(command,timeout_ms,working_dir)
+      result = ps_manager.execute(command,timeout_ms,working_dir, environment_variables)
 
       stdout      = result[:stdout]
       stderr      = result[:stderr]

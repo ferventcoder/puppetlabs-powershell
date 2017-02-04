@@ -62,7 +62,7 @@ module PuppetX
           self.class.is_stream_valid?(@stderr)
       end
 
-      def execute(powershell_code, timeout_ms = nil, working_dir = nil)
+      def execute(powershell_code, timeout_ms = nil, working_dir = nil, environment_variables = [])
         output_ready_event_name =  "Global\\#{SecureRandom.uuid}"
         output_ready_event = self.class.create_event(output_ready_event_name)
 
@@ -122,7 +122,7 @@ module PuppetX
         CODE
       end
 
-      def make_ps_code(powershell_code, output_ready_event_name, timeout_ms = nil, working_dir = nil)
+      def make_ps_code(powershell_code, output_ready_event_name, timeout_ms = nil, working_dir = nil, environment_variables = [])
         begin
           timeout_ms = Integer(timeout_ms)
           # Lower bound protection. The polling resolution is only 50ms
@@ -130,6 +130,18 @@ module PuppetX
         rescue
           timeout_ms = 300 * 1000
         end
+
+        # environment values passed in need to be converted to a PowerShell
+        # Hashtable
+        exec_environment_variables = '@{'
+        #require 'pry';binding.pry
+        #envvars = Hash[environment_variables] unless environment_variables.empty?
+        #if (! envvars.empty?) {
+          #foreach loop
+        #}
+        exec_environment_variables += '}'
+
+        # PS side expects Invoke-PowerShellUserCode is always the return value here
         <<-CODE
 $params = @{
   Code = @'
@@ -138,6 +150,7 @@ $params = @{
   EventName = "#{output_ready_event_name}"
   TimeoutMilliseconds = #{timeout_ms}
   WorkingDirectory = "#{working_dir}"
+  ExecEnvironmentVariables = #{exec_environment_variables}
 }
 
 Invoke-PowerShellUserCode @params
